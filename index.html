@@ -38,16 +38,26 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-
 .login-group{margin-bottom:16px}
 .login-btn{width:100%;padding:10px;background:var(--orange);border:none;border-radius:var(--radius-sm);color:white;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;margin-top:6px;letter-spacing:0.3px}
 .login-btn:hover{background:#cc6600;transform:translateY(-1px);box-shadow:0 4px 12px rgba(229,114,0,0.35)}
-.demo-users{margin-top:24px;padding-top:18px;border-top:1px solid var(--border)}
-.demo-label{font-size:0.69rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px}
-.demo-user-btn{width:100%;text-align:left;padding:9px 11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:5px;transition:all 0.15s;display:flex;align-items:center;gap:9px;font-family:'Outfit',sans-serif}
-.demo-user-btn:hover{border-color:var(--blue);background:var(--bg4)}
-.demo-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:white;flex-shrink:0}
-.demo-user-info strong{font-size:0.8rem;color:var(--text);display:block;font-weight:600}
-.demo-user-info span{font-size:0.7rem;color:var(--text-muted)}
-.demo-role{margin-left:auto;font-size:0.63rem;font-weight:700;padding:2px 7px;border-radius:20px}
-.role-admin{background:var(--blue-dim);color:var(--blue)}
-.role-user{background:var(--bg4);color:var(--text-muted);border:1px solid var(--border)}
+.login-btn:disabled{background:var(--text-muted);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Estado "link enviado" */
+.link-sent-box{display:none;margin-top:18px;background:var(--green-bg);border:1.5px solid var(--green-border);border-radius:var(--radius-sm);padding:16px 14px;text-align:center}
+.link-sent-box.show{display:block}
+.link-sent-icon{font-size:2rem;margin-bottom:6px}
+.link-sent-title{font-size:0.9rem;font-weight:700;color:var(--green);margin-bottom:4px}
+.link-sent-sub{font-size:0.77rem;color:var(--text-dim);line-height:1.5}
+.link-sent-email{font-weight:700;color:var(--text)}
+
+/* Estado "verificando link" */
+.verifying-box{display:none;margin-top:18px;background:var(--blue-dim);border:1.5px solid #c0d9f0;border-radius:var(--radius-sm);padding:16px 14px;text-align:center}
+.verifying-box.show{display:block}
+.verifying-spinner{font-size:1.6rem;animation:spin 1.2s linear infinite;display:inline-block;margin-bottom:6px}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.verifying-title{font-size:0.87rem;font-weight:600;color:var(--blue)}
+
+/* Error login */
+.login-error-box{display:none;margin-top:10px;background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:9px 12px;font-size:0.78rem;color:var(--red);text-align:center;line-height:1.5}
+.login-error-box.show{display:block}
 
 /* APP */
 .app{display:none;min-height:100vh}
@@ -291,7 +301,9 @@ textarea{resize:vertical;min-height:96px;line-height:1.6}
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ══════════════════════════════════════════════════════
+     LOGIN — Email Link (passwordless)
+     ══════════════════════════════════════════════════════ -->
 <div class="login-screen" id="login-screen">
   <div class="login-box">
     <div class="login-logo">
@@ -300,21 +312,41 @@ textarea{resize:vertical;min-height:96px;line-height:1.6}
       </div>
       <div class="login-logo-text"><strong>naturgy</strong><span>Portal Legal · Ticketing</span></div>
     </div>
-    <div class="login-title">Accede a tu cuenta</div>
-    <div class="login-sub">Sistema de gestión de tickets.</div>
-    <div class="login-group"><label class="login-label">Email</label><input class="login-input" type="email" id="login-email" placeholder="tu@empresa.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="login-btn" onclick="doLogin()">Entrar →</button>
-    <div id="login-error" style="color:var(--red);font-size:0.77rem;text-align:center;margin-top:9px;display:none">Email no válido o incorrecto</div>
-    <div class="demo-users">
-      <div class="demo-label">Acceso rápido (demo)</div>
-      <div class="demo-user-btn" onclick="quickLogin('javier.diaz@moebiusconsulting.com')"><div class="demo-avatar" style="background:#004571">JD</div><div class="demo-user-info"><strong>Javier Díaz</strong><span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5a303b2c333f28743e333b201a37353f38332f29393534292f362e33343d74393537">[email&#160;protected]</a></span></div><span class="demo-role role-admin">Admin</span></div>
-      <div class="demo-user-btn" onclick="quickLogin('a.rodriguez@naturgy.com')"><div class="demo-avatar" style="background:#5b45b0">AR</div><div class="demo-user-info"><strong>A. Rodríguez</strong><span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d3b2fda1bcb7a1bab4a6b6a993bdb2a7a6a1b4aafdb0bcbe">[email&#160;protected]</a></span></div><span class="demo-role role-user">Usuario</span></div>
-      <div class="demo-user-btn" onclick="quickLogin('c.fernandez@naturgy.com')"><div class="demo-avatar" style="background:#0a8f5c">CF</div><div class="demo-user-info"><strong>C. Fernández</strong><span><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="91f2bff7f4e3fff0fff5f4ebd1fff0e5e4e3f6e8bff2fefc">[email&#160;protected]</a></span></div><span class="demo-role role-user">Usuario</span></div>
+
+    <!-- Paso 1: pedir email -->
+    <div id="step-email">
+      <div class="login-title">Accede a tu cuenta</div>
+      <div class="login-sub">Introduce tu email corporativo y te enviaremos un enlace de acceso seguro. No necesitas contraseña.</div>
+      <div class="login-group">
+        <label class="login-label">Email corporativo</label>
+        <input class="login-input" type="email" id="login-email" placeholder="tu@empresa.com"
+               onkeydown="if(event.key==='Enter')sendLink()">
+      </div>
+      <button class="login-btn" id="send-btn" onclick="sendLink()">Enviar enlace de acceso →</button>
+      <div class="login-error-box" id="login-error"></div>
+    </div>
+
+    <!-- Paso 2: confirmación de envío -->
+    <div class="link-sent-box" id="link-sent">
+      <div class="link-sent-icon">📬</div>
+      <div class="link-sent-title">Enlace enviado</div>
+      <div class="link-sent-sub">
+        Hemos enviado un enlace de acceso a<br>
+        <span class="link-sent-email" id="sent-email-label"></span><br><br>
+        Abre el email y haz clic en el enlace para entrar. Puedes cerrar esta pestaña.
+      </div>
+      <button class="login-btn" style="margin-top:14px;background:var(--bg4);color:var(--text-dim);box-shadow:none" onclick="resetLoginStep()">← Cambiar email</button>
+    </div>
+
+    <!-- Paso 3: verificando link al volver -->
+    <div class="verifying-box" id="verifying-box">
+      <div class="verifying-spinner">⟳</div>
+      <div class="verifying-title">Verificando enlace…</div>
     </div>
   </div>
 </div>
 
-<!-- APP -->
+<!-- APP (igual que antes) -->
 <div class="app" id="app">
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -403,7 +435,6 @@ textarea{resize:vertical;min-height:96px;line-height:1.6}
                 <div class="to inc-type-btn" onclick="selType(this,'INC')" style="grid-column:1/-1"><div class="tc2">INC</div><div class="tn">Incidencia</div><div class="td2">Problema operativo urgente que requiere atención inmediata</div></div>
               </div>
               <input type="hidden" id="f-type">
-              <!-- INCIDENCIA BLOCK -->
               <div class="iw inc-block" id="iw" style="display:none">
                 <div class="inc-block-title">🚨 Las incidencias no se gestionan por este canal</div>
                 <div class="inc-block-body">
@@ -412,7 +443,7 @@ textarea{resize:vertical;min-height:96px;line-height:1.6}
                 </div>
                 <div class="inc-block-contacts">
                   <div class="inc-contact"><span class="inc-contact-role">📞 Urgencias</span><span class="inc-contact-info">Centro de control: <strong>+34 900 100 XXX</strong></span></div>
-                  <div class="inc-contact"><span class="inc-contact-role">📧 Email</span><span class="inc-contact-info"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="157c7b767c71707b767c7466557b74616067726c3b767a78">[email&#160;protected]</a></span></div>
+                  <div class="inc-contact"><span class="inc-contact-role">📧 Email</span><span class="inc-contact-info">incidencias@naturgy.com</span></div>
                   <div class="inc-contact"><span class="inc-contact-role">🔗 Portal</span><span class="inc-contact-info">Portal interno de incidencias (Intranet)</span></div>
                 </div>
               </div>
@@ -482,47 +513,20 @@ textarea{resize:vertical;min-height:96px;line-height:1.6}
         <div class="di"><label>Fecha de creación</label><div class="dv" id="m-date"></div></div>
       </div>
       <div class="tdesc" id="m-desc"></div>
-
-      <!-- ARCHIVOS ADJUNTOS (visible solo admin) -->
       <div class="attach-section" id="m-attach-section" style="display:none">
         <div class="attach-title">📎 Archivos adjuntos</div>
         <div class="attach-list" id="m-attach-list"></div>
       </div>
-
-      <!-- EDICIÓN ADMIN -->
       <div class="admin-section" id="m-admin-section" style="display:none">
         <div class="admin-section-title">🔧 Panel de administración</div>
         <div class="admin-row">
-          <div class="admin-field">
-            <label>Estado</label>
-            <select id="admin-status">
-              <option>Abierto</option>
-              <option>En análisis</option>
-              <option>Resuelto</option>
-              <option>Pendiente de validación</option>
-              <option>Cerrado</option>
-            </select>
-          </div>
-          <div class="admin-field">
-            <label>Impacto</label>
-            <select id="admin-impact">
-              <option>Alto</option>
-              <option>Medio</option>
-              <option>Bajo</option>
-            </select>
-          </div>
+          <div class="admin-field"><label>Estado</label><select id="admin-status"><option>Abierto</option><option>En análisis</option><option>Resuelto</option><option>Pendiente de validación</option><option>Cerrado</option></select></div>
+          <div class="admin-field"><label>Impacto</label><select id="admin-impact"><option>Alto</option><option>Medio</option><option>Bajo</option></select></div>
         </div>
-        <div class="admin-field" style="margin-bottom:10px">
-          <label>Comentario interno / resolución</label>
-          <textarea id="admin-comment" placeholder="Añade notas internas, resolución del caso o cualquier comentario relevante..."></textarea>
-        </div>
-        <div style="display:flex;justify-content:flex-end">
-          <button class="admin-save-btn" onclick="saveAdminChanges()">💾 Guardar cambios</button>
-        </div>
+        <div class="admin-field" style="margin-bottom:10px"><label>Comentario interno / resolución</label><textarea id="admin-comment" placeholder="Añade notas internas, resolución del caso o cualquier comentario relevante..."></textarea></div>
+        <div style="display:flex;justify-content:flex-end"><button class="admin-save-btn" onclick="saveAdminChanges()">💾 Guardar cambios</button></div>
         <div id="admin-comments-log" style="margin-top:12px"></div>
       </div>
-
-      <!-- VALIDACIÓN (solo dueño del ticket, cuando está en Pendiente de validación) -->
       <div class="va" id="m-val" style="display:none">
         <div class="vt">✅ El ticket está pendiente de validación — ¿La solución fue satisfactoria?</div>
         <div class="vb">
@@ -535,7 +539,6 @@ textarea{resize:vertical;min-height:96px;line-height:1.6}
         </div>
         <div style="font-size:0.7rem;color:var(--text-muted);margin-top:9px">⏱ Si no validas en 48h, el ticket se cerrará automáticamente.</div>
       </div>
-
       <div style="margin-bottom:7px;font-size:0.71rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted)">Historial</div>
       <div class="tl" id="m-tl"></div>
     </div>
@@ -545,18 +548,26 @@ textarea{resize:vertical;min-height:96px;line-height:1.6}
 <!-- TOAST -->
 <div class="toast" id="toast"><span class="ti3" id="t-ic">✅</span><div class="tt3"><strong id="t-ti"></strong><span id="t-ms"></span></div></div>
 
-<!-- ══════════════════════════════════════════════════════
-     FIREBASE SDK  —  reemplaza los valores de FIREBASE_CONFIG
-     ══════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════════════════════
+     FIREBASE  ·  Email Link Auth + Firestore
+     ══════════════════════════════════════════════════════════════════════
+     🔧 CHECKLIST ANTES DE USAR:
+       1. Pega aquí tu FIREBASE_CONFIG real
+       2. En Firebase Console → Authentication → Sign-in method → activa "Email link (passwordless)"
+       3. Añade el dominio de tu app en "Authorized domains"
+       4. Copia firestore.rules al proyecto Firebase y publícalas
+     ══════════════════════════════════════════════════════════════════════ -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore, collection, doc, addDoc, updateDoc, onSnapshot,
-  query, orderBy, serverTimestamp, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp }                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, sendSignInLinkToEmail,
+         isSignInWithEmailLink, signInWithEmailLink,
+         onAuthStateChanged, signOut }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc,
+         addDoc, updateDoc, onSnapshot,
+         query, orderBy, serverTimestamp,
+         getDocs }                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ─── FIREBASE CONFIG ──────────────────────────────────────────────────
-// 🔧 REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO FIREBASE
+// ─── 🔧 REEMPLAZA CON TU CONFIG ──────────────────────────────────────
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyCLiiW4JaXcx8hJrv6UZcv0KxSyYDrlrxA",
   authDomain:        "ntgy-ticketing.firebaseapp.com",
@@ -566,154 +577,234 @@ const FIREBASE_CONFIG = {
   appId:             "1:835371843267:web:5bb38092ea360eed4aac76"
 };
 
-const app = initializeApp(FIREBASE_CONFIG);
-const db  = getFirestore(app);
+// ─── 🔧 URL a la que Firebase redirigirá al usuario tras clicar el link ─
+//      Debe ser la URL exacta donde está alojado este HTML
+const ACTION_URL = window.location.href;   // auto-detecta en producción
+
+// ─── Admin emails (sincronizado con firestore.rules) ─────────────────
+const ADMIN_EMAILS = [
+  'javier.diaz@moebiusconsulting.com',
+  'mdelriot@naturgy.com',
+  'jbarberab@naturgy.com'
+];
+
+// ─── Init ─────────────────────────────────────────────────────────────
+const app  = initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 const ticketsCol = collection(db, 'tickets');
 
-// ─── ADMIN EMAILS ───────────────────────────────────────────────────
-const ADMIN_EMAILS = ['javier.diaz@moebiusconsulting.com','mdelriot@naturgy.com','jbarberab@naturgy.com'];
-
-// ─── DEMO USERS ─────────────────────────────────────────────────────
-const DEMO_NAMES = {
-  'javier.diaz@moebiusconsulting.com': {name:'Javier Díaz',ini:'JD',col:'#004571'},
-  'a.rodriguez@naturgy.com': {name:'A. Rodríguez',ini:'AR',col:'#5b45b0'},
-  'c.fernandez@naturgy.com': {name:'C. Fernández',ini:'CF',col:'#0a8f5c'},
-  'm.lopez@naturgy.com': {name:'M. López',ini:'ML',col:'#e57200'},
-};
-
+// ─── Estado local ──────────────────────────────────────────────────────
 let cu = null, cTid = null, sType = '', sImp = '';
 let mF = {q:'',s:''}, tF = {q:'',s:'',t:''};
-let pendingValNo = false;
-let tickets = [];      // array local, se rellena con Firestore en tiempo real
-let unsubscribe = null; // función para dejar de escuchar
+let tickets = [];
+let unsubscribe = null;
 
-// ─── HELPERS ──────────────────────────────────────────────────────────
-function isAdmin(email){ return ADMIN_EMAILS.includes((email||'').toLowerCase()); }
+// ══════════════════════════════════════════════════════════════════════
+// AUTH — Email Link flow
+// ══════════════════════════════════════════════════════════════════════
+
+// Al cargar: ¿estamos regresando desde un email link?
+if (isSignInWithEmailLink(auth, window.location.href)) {
+  showVerifying(true);
+  let email = window.localStorage.getItem('emailForSignIn');
+  if (!email) {
+    // Caso raro: el usuario abrió el link en otro dispositivo
+    email = window.prompt('Por seguridad, introduce de nuevo tu email corporativo:');
+  }
+  signInWithEmailLink(auth, email, window.location.href)
+    .then(() => {
+      window.localStorage.removeItem('emailForSignIn');
+      // Limpiar el link de la URL sin recargar
+      history.replaceState(null, '', window.location.pathname);
+    })
+    .catch(err => {
+      showVerifying(false);
+      showLoginError('El enlace no es válido o ha caducado. Solicita uno nuevo.');
+      console.error(err);
+    });
+}
+
+// Observer: si Firebase confirma sesión, montamos la app
+onAuthStateChanged(auth, user => {
+  if (user) {
+    mountApp(user);
+  } else {
+    showVerifying(false);
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').classList.remove('visible');
+  }
+});
+
+// Enviar Email Link
+async function sendLink() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    showLoginError('Introduce un email válido.');
+    return;
+  }
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+  hideLoginError();
+
+  const actionCodeSettings = {
+    url: ACTION_URL,
+    handleCodeInApp: true
+  };
+
+  try {
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    window.localStorage.setItem('emailForSignIn', email);
+    // Mostrar confirmación
+    document.getElementById('step-email').style.display = 'none';
+    document.getElementById('sent-email-label').textContent = email;
+    document.getElementById('link-sent').classList.add('show');
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Enviar enlace de acceso →';
+    const msgs = {
+      'auth/invalid-email': 'Email no válido.',
+      'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos.'
+    };
+    showLoginError(msgs[err.code] || 'No se pudo enviar el enlace. Inténtalo de nuevo.');
+    console.error(err);
+  }
+}
+window.sendLink = sendLink;
+
+function resetLoginStep() {
+  document.getElementById('link-sent').classList.remove('show');
+  document.getElementById('step-email').style.display = 'block';
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('send-btn').textContent = 'Enviar enlace de acceso →';
+}
+window.resetLoginStep = resetLoginStep;
+
+function showVerifying(show) {
+  document.getElementById('verifying-box').classList.toggle('show', show);
+  document.getElementById('step-email').style.display = show ? 'none' : 'block';
+}
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideLoginError() {
+  document.getElementById('login-error').classList.remove('show');
+}
+
+// Logout
+async function doLogout() {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  await signOut(auth);
+  cu = null; tickets = [];
+}
+window.doLogout = doLogout;
+
+// ══════════════════════════════════════════════════════════════════════
+// APP MOUNT — igual que antes pero usando user.uid y user.email reales
+// ══════════════════════════════════════════════════════════════════════
+
+function mountApp(user) {
+  const email = (user.email || '').toLowerCase();
+  const priv  = ADMIN_EMAILS.includes(email);
+  const info  = getUserInfo(email);
+
+  cu = { uid: user.uid, email, name: info.name, ini: info.ini,
+         col: info.col, priv, roleLabel: priv ? 'Administrador' : 'Usuario' };
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('s-name').textContent  = cu.name;
+  document.getElementById('s-role').textContent  = cu.roleLabel;
+  const av = document.getElementById('s-av');
+  av.textContent   = cu.ini;
+  av.style.background = cu.col;
+
+  document.getElementById('nav-dashboard').style.display    = cu.priv ? 'flex'  : 'none';
+  document.getElementById('sec-gestion').style.display      = cu.priv ? 'block' : 'none';
+  document.getElementById('sec-info').style.display         = cu.priv ? 'none'  : 'block';
+  document.getElementById('f-email').value = cu.email;
+
+  startListening();
+  if (cu.priv) showView('dashboard'); else showView('mis-tickets');
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────
+const KNOWN_USERS = {
+  'javier.diaz@moebiusconsulting.com': {name:'Javier Díaz',  ini:'JD', col:'#004571'},
+  'a.rodriguez@naturgy.com':           {name:'A. Rodríguez', ini:'AR', col:'#5b45b0'},
+  'c.fernandez@naturgy.com':           {name:'C. Fernández', ini:'CF', col:'#0a8f5c'},
+  'm.lopez@naturgy.com':               {name:'M. López',     ini:'ML', col:'#e57200'},
+};
+function getUserInfo(email) {
+  if (KNOWN_USERS[email]) return KNOWN_USERS[email];
+  const parts = email.split('@')[0].split('.');
+  const name  = parts.map(p => p[0].toUpperCase() + p.slice(1)).join(' ');
+  const ini   = parts.map(p => p[0].toUpperCase()).join('').slice(0, 2);
+  const COLORS = ['#004571','#5b45b0','#0a8f5c','#e57200','#d93025'];
+  return { name, ini, col: COLORS[email.length % COLORS.length] };
+}
+function isAdmin(email) { return ADMIN_EMAILS.includes((email||'').toLowerCase()); }
 function sc(s){return{'Abierto':'sa','En análisis':'san','Resuelto':'sr','Pendiente de validación':'sp2','Cerrado':'sc2'}[s]||'sa'}
 function tc(t){return{'Q-OPS':'tq','KB-ERR':'tk','BOT-GAP':'tb','PROC-GAP':'tp','INC':'ti'}[t]||'tq'}
 function ic(i){return{'Alto':'ia','Medio':'im','Bajo':'ib'}[i]||''}
 
-function getUserInfo(email){
-  if(DEMO_NAMES[email]) return DEMO_NAMES[email];
-  const parts = email.split('@')[0].split('.');
-  const name = parts.map(p=>p[0].toUpperCase()+p.slice(1)).join(' ');
-  const ini = parts.map(p=>p[0].toUpperCase()).join('').slice(0,2);
-  const colors = ['#004571','#5b45b0','#0a8f5c','#e57200','#d93025'];
-  const col = colors[email.length % colors.length];
-  return {name,ini,col};
-}
-
-// ─── FIREBASE: ESCUCHAR TICKETS EN TIEMPO REAL ────────────────────────
-function startListening(){
-  if(unsubscribe) unsubscribe(); // limpiar listener anterior
+// ─── Firestore: listener tiempo real ─────────────────────────────────
+function startListening() {
+  if (unsubscribe) unsubscribe();
   const q2 = query(ticketsCol, orderBy('createdAt','desc'));
-  unsubscribe = onSnapshot(q2, (snapshot) => {
+  unsubscribe = onSnapshot(q2, snapshot => {
     tickets = snapshot.docs.map(d => ({...d.data(), _docId: d.id}));
-    // auto-close 48h tickets
     checkAutoClose();
-    // re-render la vista activa
     updBadges();
     const active = document.querySelector('.view.active');
-    if(active){
+    if (active) {
       const id = active.id.replace('view-','');
-      if(id==='dashboard') renderDash();
-      if(id==='mis-tickets') renderMis();
-      if(id==='todos-tickets') renderTodos();
+      if (id==='dashboard')    renderDash();
+      if (id==='mis-tickets')  renderMis();
+      if (id==='todos-tickets') renderTodos();
     }
-  }, (err) => {
-    console.error('Firestore error:', err);
-    showToast('⚠️','Error de conexión','No se pudo conectar con la base de datos.',true);
+  }, err => {
+    console.error('Firestore:', err);
+    showToast('⚠️','Error de conexión','No se pudo conectar.',true);
   });
 }
 
-// ─── FIREBASE: CREAR TICKET ───────────────────────────────────────────
-async function createTicketInFirestore(ticketData){
+// ─── Firestore: crear ticket ──────────────────────────────────────────
+async function createTicketInFirestore(data) {
   try {
-    // Generar ID correlativo: obtener el máximo actual
-    const snap = await getDocs(ticketsCol);
-    const nums = snap.docs.map(d => {
-      const id = d.data().id || '';
-      const n = parseInt(id.replace('TKT-0',''));
-      return isNaN(n) ? 0 : n;
-    });
+    const snap   = await getDocs(ticketsCol);
+    const nums   = snap.docs.map(d => parseInt((d.data().id||'').replace('TKT-0',''))||0);
     const nextNum = (Math.max(0, ...nums)) + 1;
-    const nid = 'TKT-0' + String(nextNum).padStart(3,'0');
-    await addDoc(ticketsCol, {
-      ...ticketData,
-      id: nid,
-      createdAt: serverTimestamp(),
-      validationDeadline: null
-    });
+    const nid    = 'TKT-0' + String(nextNum).padStart(3,'0');
+    await addDoc(ticketsCol, { ...data, id: nid,
+      createdAt: serverTimestamp(), validationDeadline: null });
     return nid;
-  } catch(e){
+  } catch(e) {
     console.error(e);
-    showToast('❌','Error','No se pudo crear el ticket. Comprueba la conexión.',true);
+    showToast('❌','Error','No se pudo crear el ticket.',true);
     return null;
   }
 }
 
-// ─── FIREBASE: ACTUALIZAR TICKET ──────────────────────────────────────
-async function updateTicketInFirestore(docId, changes){
-  try {
-    await updateDoc(doc(db, 'tickets', docId), changes);
-  } catch(e){
-    console.error(e);
-    showToast('❌','Error','No se pudieron guardar los cambios.',true);
-  }
+// ─── Firestore: actualizar ticket ─────────────────────────────────────
+async function updateTicketInFirestore(docId, changes) {
+  try { await updateDoc(doc(db,'tickets',docId), changes); }
+  catch(e) { console.error(e); showToast('❌','Error','No se guardaron los cambios.',true); }
 }
 
-// ─── LOGIN ────────────────────────────────────────────────────────────
-function doLogin(){
-  const email = document.getElementById('login-email').value.trim().toLowerCase();
-  if(!email || !email.includes('@') || !email.includes('.')){
-    document.getElementById('login-error').style.display='block';
-    return;
-  }
-  loginAs(email);
-}
-window.doLogin = doLogin;
-window.quickLogin = (email) => loginAs(email);
-
-function loginAs(email){
-  const info = getUserInfo(email);
-  const priv = isAdmin(email);
-  cu = {email, name:info.name, ini:info.ini, col:info.col, priv,
-        roleLabel: priv ? 'Administrador' : 'Usuario'};
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('login-error').style.display='none';
-  document.getElementById('app').classList.add('visible');
-  document.getElementById('s-name').textContent=cu.name;
-  document.getElementById('s-role').textContent=cu.roleLabel;
-  const av=document.getElementById('s-av');av.textContent=cu.ini;av.style.background=cu.col;
-  document.getElementById('nav-dashboard').style.display=cu.priv?'flex':'none';
-  document.getElementById('sec-gestion').style.display=cu.priv?'block':'none';
-  document.getElementById('sec-info').style.display=cu.priv?'none':'block';
-  document.getElementById('f-email').value=cu.email;
-  // Iniciar escucha en tiempo real
-  startListening();
-  if(cu.priv) showView('dashboard'); else showView('mis-tickets');
-}
-function doLogout(){
-  if(unsubscribe){ unsubscribe(); unsubscribe=null; }
-  cu=null; tickets=[];
-  document.getElementById('app').classList.remove('visible');
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('login-email').value='';
-}
-window.doLogout = doLogout;
-
-// ─── AUTO-CLOSE 48H ───────────────────────────────────────────────────
-function checkAutoClose(){
+// ─── Auto-close 48h ──────────────────────────────────────────────────
+function checkAutoClose() {
   const now = Date.now();
   tickets.forEach(t => {
-    if(t.status==='Pendiente de validación' && t.validationDeadline && now > t.validationDeadline){
-      // Actualizar en Firestore
+    if (t.status === 'Pendiente de validación' && t.validationDeadline && now > t.validationDeadline) {
       updateTicketInFirestore(t._docId, {
-        status: 'Cerrado',
-        validationDeadline: null,
+        status: 'Cerrado', validationDeadline: null,
         comments: [...(t.comments||[]), {
           author:'Sistema',
-          text:'Ticket cerrado automáticamente por inactividad (48h sin validación del usuario).',
+          text:'Cerrado automáticamente por inactividad (48h).',
           date: new Date().toLocaleDateString('es-ES')
         }]
       });
@@ -721,120 +812,125 @@ function checkAutoClose(){
   });
 }
 
-// ─── VIEWS ────────────────────────────────────────────────────────────
-function showView(id){
-  if((id==='dashboard'||id==='todos-tickets')&&!cu?.priv)return;
+// ─── Views ────────────────────────────────────────────────────────────
+function showView(id) {
+  if ((id==='dashboard'||id==='todos-tickets') && !cu?.priv) return;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('view-'+id).classList.add('active');
   const nm={'dashboard':'nav-dashboard','new-ticket':'nav-new-ticket','mis-tickets':'nav-mis-tickets','todos-tickets':'nav-todos-tickets','sla':'nav-sla'};
-  const ne=document.getElementById(nm[id])||document.getElementById('nav-sla-u');
-  if(ne)ne.classList.add('active');
+  const ne = document.getElementById(nm[id]) || document.getElementById('nav-sla-u');
+  if (ne) ne.classList.add('active');
   const tt={'dashboard':'Dashboard','new-ticket':'Nuevo Ticket','mis-tickets':'Mis Tickets','todos-tickets':'Todos los Tickets','sla':'SLA y Tiempos'};
-  document.getElementById('page-title').textContent=tt[id]||id;
-  if(id==='dashboard')renderDash();
-  if(id==='mis-tickets')renderMis();
-  if(id==='todos-tickets')renderTodos();
-  if(id==='new-ticket') resetForm();
+  document.getElementById('page-title').textContent = tt[id]||id;
+  if (id==='dashboard')    renderDash();
+  if (id==='mis-tickets')  renderMis();
+  if (id==='todos-tickets') renderTodos();
+  if (id==='new-ticket')   resetForm();
 }
 window.showView = showView;
 
-function updBadges(){
-  if(!cu)return;
-  const my=tickets.filter(t=>t.uid===cu.email&&(t.status==='Abierto'||t.status==='En análisis')).length;
-  const mb=document.getElementById('nav-mis-badge');
-  if(my>0){mb.textContent=my;mb.style.display='';}else mb.style.display='none';
-  const db2=document.getElementById('nav-db-badge');
-  if(cu.priv){db2.textContent=tickets.filter(t=>t.status==='Abierto').length;db2.style.display='';}else db2.style.display='none';
+function updBadges() {
+  if (!cu) return;
+  // IMPORTANTE: los tickets usan uid real de Firebase Auth ahora
+  const my = tickets.filter(t => t.uid===cu.uid && (t.status==='Abierto'||t.status==='En análisis')).length;
+  const mb = document.getElementById('nav-mis-badge');
+  if (my>0) { mb.textContent=my; mb.style.display=''; } else mb.style.display='none';
+  const db2 = document.getElementById('nav-db-badge');
+  if (cu.priv) { db2.textContent=tickets.filter(t=>t.status==='Abierto').length; db2.style.display=''; }
+  else db2.style.display='none';
 }
 
-// ─── RENDER ───────────────────────────────────────────────────────────
-function renderDash(){
+// ─── Render ───────────────────────────────────────────────────────────
+function renderDash() {
   document.getElementById('sv-ab').textContent=tickets.filter(t=>t.status==='Abierto').length;
   document.getElementById('sv-an').textContent=tickets.filter(t=>t.status==='En análisis').length;
   document.getElementById('sv-pv').textContent=tickets.filter(t=>t.status==='Pendiente de validación').length;
   document.getElementById('sv-ce').textContent=tickets.filter(t=>t.status==='Cerrado').length;
-  const tb=document.getElementById('r-tbody');tb.innerHTML='';
+  const tb=document.getElementById('r-tbody'); tb.innerHTML='';
   tickets.slice(0,6).forEach(t=>{
-    const tr=document.createElement('tr');tr.onclick=()=>openMo(t.id);
+    const tr=document.createElement('tr'); tr.onclick=()=>openMo(t.id);
     tr.innerHTML=`<td><span class="tid">${t.id}</span></td><td><span class="tt2 ${tc(t.type)}">${t.type}</span></td><td style="max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-dim)">${t.desc}</td><td><span class="id2 ${ic(t.impact)}">${t.impact}</span></td><td><span class="st ${sc(t.status)}">${t.status}</span></td>`;
     tb.appendChild(tr);
   });
 }
 
-function renderMis(){
-  const tb=document.getElementById('m-tbody');tb.innerHTML='';
-  let list=tickets.filter(t=>t.uid===cu.email);
-  if(mF.s)list=list.filter(t=>t.status===mF.s);
-  if(mF.q)list=list.filter(t=>t.desc.toLowerCase().includes(mF.q.toLowerCase())||t.id.toLowerCase().includes(mF.q.toLowerCase()));
-  if(!list.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text-muted)">No tienes tickets con ese filtro</td></tr>`;return;}
+function renderMis() {
+  const tb=document.getElementById('m-tbody'); tb.innerHTML='';
+  // Filtramos por uid real de Firebase
+  let list=tickets.filter(t=>t.uid===cu.uid);
+  if (mF.s) list=list.filter(t=>t.status===mF.s);
+  if (mF.q) list=list.filter(t=>t.desc.toLowerCase().includes(mF.q.toLowerCase())||t.id.toLowerCase().includes(mF.q.toLowerCase()));
+  if (!list.length) { tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text-muted)">No tienes tickets con ese filtro</td></tr>`; return; }
   list.forEach(t=>{
-    const tr=document.createElement('tr');tr.onclick=()=>openMo(t.id);
-    const valBadge = (t.status==='Pendiente de validación' && t.uid===cu.email) ? ' <span style="font-size:0.65rem;background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);border-radius:10px;padding:1px 6px;margin-left:4px">⚡ Validar</span>' : '';
+    const tr=document.createElement('tr'); tr.onclick=()=>openMo(t.id);
+    const valBadge=(t.status==='Pendiente de validación'&&t.uid===cu.uid)?` <span style="font-size:0.65rem;background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);border-radius:10px;padding:1px 6px;margin-left:4px">⚡ Validar</span>`:'';
     tr.innerHTML=`<td><span class="tid">${t.id}</span></td><td><span class="tt2 ${tc(t.type)}">${t.type}</span></td><td style="max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-dim)">${t.desc}</td><td><span class="id2 ${ic(t.impact)}">${t.impact}</span></td><td><span class="st ${sc(t.status)}">${t.status}</span>${valBadge}</td><td style="color:var(--text-muted);font-size:0.75rem">${t.date}</td>`;
     tb.appendChild(tr);
   });
 }
 
-function renderTodos(){
-  const tb=document.getElementById('t-tbody');tb.innerHTML='';
+function renderTodos() {
+  const tb=document.getElementById('t-tbody'); tb.innerHTML='';
   let list=[...tickets];
-  if(tF.s)list=list.filter(t=>t.status===tF.s);
-  if(tF.t)list=list.filter(t=>t.type===tF.t);
-  if(tF.q)list=list.filter(t=>t.desc.toLowerCase().includes(tF.q.toLowerCase())||t.id.toLowerCase().includes(tF.q.toLowerCase())||t.area.toLowerCase().includes(tF.q.toLowerCase()));
-  if(!list.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text-muted)">No hay tickets con ese filtro</td></tr>`;return;}
+  if (tF.s) list=list.filter(t=>t.status===tF.s);
+  if (tF.t) list=list.filter(t=>t.type===tF.t);
+  if (tF.q) list=list.filter(t=>t.desc.toLowerCase().includes(tF.q.toLowerCase())||t.id.toLowerCase().includes(tF.q.toLowerCase())||t.area.toLowerCase().includes(tF.q.toLowerCase()));
+  if (!list.length) { tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text-muted)">No hay tickets con ese filtro</td></tr>`; return; }
   list.forEach(t=>{
-    const tr=document.createElement('tr');tr.onclick=()=>openMo(t.id);
-    const info=getUserInfo(t.uid||t.email);
+    const tr=document.createElement('tr'); tr.onclick=()=>openMo(t.id);
+    const info=getUserInfo(t.email);
     const uhtml=`<span style="display:inline-flex;align-items:center;gap:5px"><span style="width:19px;height:19px;border-radius:50%;background:${info.col};color:white;font-size:0.58rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center">${info.ini}</span><span style="font-size:0.77rem;color:var(--text-dim)">${info.name}</span></span>`;
     tr.innerHTML=`<td><span class="tid">${t.id}</span></td><td><span class="tt2 ${tc(t.type)}">${t.type}</span></td><td style="max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-dim)">${t.desc}</td><td>${uhtml}</td><td><span class="id2 ${ic(t.impact)}">${t.impact}</span></td><td><span class="st ${sc(t.status)}">${t.status}</span></td><td style="color:var(--text-muted);font-size:0.75rem">${t.date}</td>`;
     tb.appendChild(tr);
   });
 }
 
-// ─── FORM ─────────────────────────────────────────────────────────────
-function resetForm(){
-  sType='';sImp='';
+// ─── Form ─────────────────────────────────────────────────────────────
+function resetForm() {
+  sType=''; sImp='';
   document.getElementById('f-desc').value='';
   document.querySelectorAll('.to').forEach(o=>o.classList.remove('selected'));
-  ['alto','medio','bajo'].forEach(l=>{const e=document.getElementById('io-'+l);if(e)e.className='io';});
+  ['alto','medio','bajo'].forEach(l=>{ const e=document.getElementById('io-'+l); if(e) e.className='io'; });
   document.getElementById('iw').style.display='none';
   document.getElementById('si-box').classList.remove('show');
   document.getElementById('file-list').innerHTML='';
   document.getElementById('f-type').value='';
   document.getElementById('f-impact').value='';
   ['impact-section','desc-section','file-section','form-actions'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.style.display='';
+    const el=document.getElementById(id); if(el) el.style.display='';
   });
   document.getElementById('submit-btn').style.display='';
 }
 
-function selType(el,type){
+function selType(el, type) {
   document.querySelectorAll('.to').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');
   sType=type;
   document.getElementById('f-type').value=type;
-  const isInc = type==='INC';
-  document.getElementById('iw').style.display = isInc ? 'block' : 'none';
+  const isInc=(type==='INC');
+  document.getElementById('iw').style.display=isInc?'block':'none';
   ['impact-section','desc-section','file-section'].forEach(id=>{
-    const e=document.getElementById(id);if(e)e.style.display=isInc?'none':'';
+    const e=document.getElementById(id); if(e) e.style.display=isInc?'none':'';
   });
   document.getElementById('submit-btn').style.display=isInc?'none':'';
-  if(!isInc){ document.getElementById('iw').style.display='none'; }
 }
-window.selType = selType;
+window.selType=selType;
 
-function selImpact(l){
-  ['Alto','Medio','Bajo'].forEach(x=>{const e=document.getElementById('io-'+x.toLowerCase());if(e){e.className='io';if(x===l)e.classList.add('i'+x[0].toLowerCase()+'2');}});
-  sImp=l;document.getElementById('f-impact').value=l;
+function selImpact(l) {
+  ['Alto','Medio','Bajo'].forEach(x=>{
+    const e=document.getElementById('io-'+x.toLowerCase());
+    if(e){ e.className='io'; if(x===l) e.classList.add('i'+x[0].toLowerCase()+'2'); }
+  });
+  sImp=l; document.getElementById('f-impact').value=l;
   const txt={'Alto':'SLA Alto: Primera respuesta en <strong>4h</strong> · Resolución en <strong>24h</strong>','Medio':'SLA Medio: Primera respuesta en <strong>24h</strong> · Resolución en <strong>72h</strong>','Bajo':'SLA Bajo: Primera respuesta en <strong>48h</strong> · Resolución en <strong>5 días laborables</strong>'};
   document.getElementById('si-text').innerHTML=txt[l];
   document.getElementById('si-box').classList.add('show');
 }
-window.selImpact = selImpact;
+window.selImpact=selImpact;
 
-function showFiles(input){
-  const list=document.getElementById('file-list');list.innerHTML='';
+function showFiles(input) {
+  const list=document.getElementById('file-list'); list.innerHTML='';
   Array.from(input.files).forEach(f=>{
     const p=document.createElement('div');
     p.style.cssText='display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 9px;font-size:0.72rem;color:var(--text-dim);margin:3px 3px 0 0';
@@ -842,42 +938,42 @@ function showFiles(input){
     list.appendChild(p);
   });
 }
-window.showFiles = showFiles;
+window.showFiles=showFiles;
 
-async function submitTicket(){
+async function submitTicket() {
   const ar=document.getElementById('f-area').value;
   const de=document.getElementById('f-desc').value.trim();
-  if(!ar||!sType||!sImp||!de){showToast('⚠️','Campos requeridos','Completa todos los campos obligatorios.',true);return;}
-  if(sType==='INC'){showToast('🚨','Incidencias no permitidas','Deriva la incidencia al canal oficial.',true);return;}
+  if (!ar||!sType||!sImp||!de) { showToast('⚠️','Campos requeridos','Completa todos los campos obligatorios.',true); return; }
+  if (sType==='INC') { showToast('🚨','Incidencias no permitidas','Usa el canal oficial.',true); return; }
   const fileInput=document.getElementById('f-file');
   const attachments=Array.from(fileInput.files||[]).map(f=>({
     name:f.name,
     size:f.size>1048576?(f.size/1048576).toFixed(1)+' MB':(Math.round(f.size/1024))+' KB',
     type:f.name.endsWith('.pdf')?'pdf':f.name.match(/\.(png|jpg|jpeg|gif)/i)?'image':'doc'
   }));
-  // Deshabilitar botón mientras guarda
-  const btn = document.getElementById('submit-btn');
-  btn.disabled = true; btn.textContent = '⏳ Guardando...';
-  const nid = await createTicketInFirestore({
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true; btn.textContent='⏳ Guardando...';
+
+  // uid real de Firebase Auth — las Firestore Rules lo validan
+  const nid=await createTicketInFirestore({
     type:sType, desc:de, area:ar,
-    email:cu.email, uid:cu.email,
+    email:cu.email,
+    uid:cu.uid,       // ← uid real de Firebase, no el email
     impact:sImp, status:'Abierto',
     date:new Date().toLocaleDateString('es-ES'),
     comments:[], attachments
   });
-  btn.disabled = false; btn.innerHTML = '📨 Enviar Ticket';
-  if(nid){
-    showToast('✅',`Ticket ${nid} creado`,`Confirmación enviada a ${cu.email}`,false);
-    showView('mis-tickets');
-  }
+  btn.disabled=false; btn.innerHTML='📨 Enviar Ticket';
+  if (nid) { showToast('✅',`Ticket ${nid} creado`,`Confirmación enviada a ${cu.email}`,false); showView('mis-tickets'); }
 }
-window.submitTicket = submitTicket;
+window.submitTicket=submitTicket;
 
-// ─── MODAL ────────────────────────────────────────────────────────────
-function openMo(id){
-  const t=tickets.find(x=>x.id===id);if(!t)return;
-  if(!cu.priv&&t.uid!==cu.email)return;
-  cTid=id;pendingValNo=false;
+// ─── Modal ────────────────────────────────────────────────────────────
+function openMo(id) {
+  const t=tickets.find(x=>x.id===id); if(!t) return;
+  // Seguridad en cliente: usuario normal solo ve sus tickets
+  if (!cu.priv && t.uid!==cu.uid) return;
+  cTid=id;
   document.getElementById('val-no-area').classList.remove('show');
   document.getElementById('val-no-comment').value='';
   document.getElementById('m-id').textContent=t.id;
@@ -889,130 +985,116 @@ function openMo(id){
   document.getElementById('m-imp').innerHTML=`<span class="id2 ${ic(t.impact)}">${t.impact}</span>`;
   document.getElementById('m-date').textContent=t.date;
   document.getElementById('m-desc').textContent=t.desc;
-  const showVal = (t.uid===cu.email && t.status==='Pendiente de validación');
-  document.getElementById('m-val').style.display=showVal?'block':'none';
+
+  // Validación: solo dueño del ticket
+  document.getElementById('m-val').style.display=(t.uid===cu.uid && t.status==='Pendiente de validación')?'block':'none';
+
+  // Panel admin
   const adminSec=document.getElementById('m-admin-section');
-  if(cu.priv){
+  if (cu.priv) {
     adminSec.style.display='block';
     document.getElementById('admin-status').value=t.status;
     document.getElementById('admin-impact').value=t.impact;
     document.getElementById('admin-comment').value='';
     renderAdminComments(t);
-  } else { adminSec.style.display='none'; }
+  } else adminSec.style.display='none';
+
+  // Adjuntos (solo admin)
   const attachSec=document.getElementById('m-attach-section');
-  if(cu.priv){
+  if (cu.priv) {
     attachSec.style.display='block';
-    const list=document.getElementById('m-attach-list');
-    list.innerHTML='';
-    if(!t.attachments||t.attachments.length===0){
+    const list=document.getElementById('m-attach-list'); list.innerHTML='';
+    if (!t.attachments||!t.attachments.length) {
       list.innerHTML='<div class="attach-empty">Sin archivos adjuntos</div>';
     } else {
       t.attachments.forEach(a=>{
         const icon=a.type==='pdf'?'📄':a.type==='image'?'🖼️':'📎';
-        const div=document.createElement('div');
-        div.className='attach-item';
+        const div=document.createElement('div'); div.className='attach-item';
         div.innerHTML=`<div class="attach-info"><span class="attach-icon">${icon}</span><div><div class="attach-name">${a.name}</div><div class="attach-size">${a.size}</div></div></div><button class="attach-download" onclick="downloadAttachment('${a.name}')">⬇ Descargar</button>`;
         list.appendChild(div);
       });
     }
-  } else { attachSec.style.display='none'; }
+  } else attachSec.style.display='none';
+
+  // Timeline
   const steps=bTl(t.status);
   document.getElementById('m-tl').innerHTML=steps.map((s,i)=>`<div class="tli"><div class="tld ${i===steps.length-1?'active':''}">${s.ic}</div><div class="tlc"><strong>${s.lb}</strong><span>${s.tm}</span></div></div>`).join('');
   document.getElementById('mo').classList.add('open');
 }
-window.openMo = openMo;
+window.openMo=openMo;
 
-function renderAdminComments(t){
+function renderAdminComments(t) {
   const log=document.getElementById('admin-comments-log');
-  if(!t.comments||!t.comments.length){log.innerHTML='';return;}
+  if (!t.comments||!t.comments.length) { log.innerHTML=''; return; }
   log.innerHTML=`<div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-muted);margin-bottom:6px">Comentarios anteriores</div>`+
     t.comments.map(c=>`<div style="background:white;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;margin-bottom:6px;font-size:0.78rem;color:var(--text-dim);line-height:1.5"><span style="font-weight:600;color:var(--text)">${c.author}</span> · <span style="color:var(--text-muted)">${c.date}</span><div style="margin-top:4px">${c.text}</div></div>`).join('');
 }
 
-async function saveAdminChanges(){
-  const t=tickets.find(x=>x.id===cTid);if(!t)return;
+async function saveAdminChanges() {
+  const t=tickets.find(x=>x.id===cTid); if(!t) return;
   const newStatus=document.getElementById('admin-status').value;
   const newImpact=document.getElementById('admin-impact').value;
   const comment=document.getElementById('admin-comment').value.trim();
-  const prevStatus=t.status;
-  const changes = { status: newStatus, impact: newImpact };
-  if(newStatus==='Pendiente de validación' && prevStatus!=='Pendiente de validación'){
-    changes.validationDeadline = Date.now() + 48*60*60*1000;
-  }
-  if(comment){
-    changes.comments = [...(t.comments||[]), {
-      author:'Admin ('+cu.name+')',
-      text:comment,
-      date:new Date().toLocaleDateString('es-ES')
-    }];
-  }
+  const changes={ status:newStatus, impact:newImpact };
+  if (newStatus==='Pendiente de validación' && t.status!=='Pendiente de validación')
+    changes.validationDeadline=Date.now()+48*60*60*1000;
+  if (comment)
+    changes.comments=[...(t.comments||[]),{author:'Admin ('+cu.name+')',text:comment,date:new Date().toLocaleDateString('es-ES')}];
   await updateTicketInFirestore(t._docId, changes);
   document.getElementById('mo').classList.remove('open');
-  showToast('💾','Cambios guardados',`${cTid} actualizado correctamente.`,false);
+  showToast('💾','Cambios guardados',`${cTid} actualizado.`,false);
 }
-window.saveAdminChanges = saveAdminChanges;
+window.saveAdminChanges=saveAdminChanges;
+window.downloadAttachment=(name)=>showToast('⬇️','Descargando','Descargando '+name,false);
 
-window.downloadAttachment = (name) => showToast('⬇️','Descargando','Descargando '+name,false);
-
-function bTl(s){
+function bTl(s) {
   const all=[
-    {lb:'Ticket creado',ic:'📝',tm:'—'},
-    {lb:'Confirmación enviada al solicitante',ic:'📧',tm:'—'},
-    {lb:'Ticket en análisis',ic:'🔍',tm:'—'},
-    {lb:'Respuesta enviada',ic:'💬',tm:'—'},
-    {lb:'Pendiente de validación',ic:'⏳',tm:'—'},
-    {lb:'Ticket cerrado',ic:'✅',tm:'—'}
+    {lb:'Ticket creado',ic:'📝',tm:'—'},{lb:'Confirmación enviada al solicitante',ic:'📧',tm:'—'},
+    {lb:'Ticket en análisis',ic:'🔍',tm:'—'},{lb:'Respuesta enviada',ic:'💬',tm:'—'},
+    {lb:'Pendiente de validación',ic:'⏳',tm:'—'},{lb:'Ticket cerrado',ic:'✅',tm:'—'}
   ];
   return all.slice(0,{'Abierto':2,'En análisis':3,'Resuelto':4,'Pendiente de validación':5,'Cerrado':6}[s]||2);
 }
 
-function closeMo(e){if(e.target===document.getElementById('mo'))document.getElementById('mo').classList.remove('open');}
-window.closeMo = closeMo;
+function closeMo(e) { if(e.target===document.getElementById('mo')) document.getElementById('mo').classList.remove('open'); }
+window.closeMo=closeMo;
 
-// ─── VALIDATION ───────────────────────────────────────────────────────
-async function showValNo(isNo){
-  if(!isNo){
+// ─── Validation ───────────────────────────────────────────────────────
+async function showValNo(isNo) {
+  if (!isNo) {
     const t=tickets.find(x=>x.id===cTid);
-    if(t) await updateTicketInFirestore(t._docId, {status:'Cerrado', validationDeadline:null});
+    if (t) await updateTicketInFirestore(t._docId,{status:'Cerrado',validationDeadline:null});
     document.getElementById('mo').classList.remove('open');
-    showToast('✅','Ticket cerrado',`${cTid} marcado como resuelto. ¡Gracias!`,false);
+    showToast('✅','Ticket cerrado',`${cTid} resuelto. ¡Gracias!`,false);
   } else {
-    pendingValNo=true;
     document.getElementById('val-no-area').classList.add('show');
   }
 }
-window.showValNo = showValNo;
+window.showValNo=showValNo;
 
-async function submitValNo(){
+async function submitValNo() {
   const comment=document.getElementById('val-no-comment').value.trim();
-  if(!comment){showToast('⚠️','Comentario requerido','Por favor indica qué falta por resolver.',true);return;}
+  if (!comment) { showToast('⚠️','Comentario requerido','Indica qué falta por resolver.',true); return; }
   const t=tickets.find(x=>x.id===cTid);
-  if(t){
-    await updateTicketInFirestore(t._docId, {
-      status:'En análisis',
-      validationDeadline:null,
-      comments:[...(t.comments||[]), {
-        author:'Usuario ('+cu.name+')',
-        text:'No resuelto: '+comment,
-        date:new Date().toLocaleDateString('es-ES')
-      }]
-    });
-  }
+  if (t) await updateTicketInFirestore(t._docId,{
+    status:'En análisis', validationDeadline:null,
+    comments:[...(t.comments||[]),{author:'Usuario ('+cu.name+')',text:'No resuelto: '+comment,date:new Date().toLocaleDateString('es-ES')}]
+  });
   document.getElementById('mo').classList.remove('open');
-  showToast('🔄','Ticket reabierto',`${cTid} vuelve a análisis con tu comentario.`,false);
+  showToast('🔄','Ticket reabierto',`${cTid} vuelve a análisis.`,false);
 }
-window.submitValNo = submitValNo;
+window.submitValNo=submitValNo;
 
-// ─── FILTERS ──────────────────────────────────────────────────────────
-window.filterMis = (q) => { mF.q=q; renderMis(); };
-window.filterMisS = (s) => { mF.s=s; renderMis(); };
-window.filterTodos = (q) => { tF.q=q; renderTodos(); };
-window.filterTodosS = (s) => { tF.s=s; renderTodos(); };
-window.filterTodosT = (t2) => { tF.t=t2; renderTodos(); };
+// ─── Filters ──────────────────────────────────────────────────────────
+window.filterMis =(q)=>{ mF.q=q; renderMis(); };
+window.filterMisS=(s)=>{ mF.s=s; renderMis(); };
+window.filterTodos =(q)=>{ tF.q=q; renderTodos(); };
+window.filterTodosS=(s)=>{ tF.s=s; renderTodos(); };
+window.filterTodosT=(t2)=>{ tF.t=t2; renderTodos(); };
 
-// ─── TOAST ────────────────────────────────────────────────────────────
+// ─── Toast ────────────────────────────────────────────────────────────
 let toastTimer;
-function showToast(ic,ti,ms,isErr){
+function showToast(ic,ti,ms,isErr) {
   clearTimeout(toastTimer);
   const t=document.getElementById('toast');
   document.getElementById('t-ic').textContent=ic;
@@ -1022,8 +1104,7 @@ function showToast(ic,ti,ms,isErr){
   t.classList.add('show');
   toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
 }
-window.showToast = showToast;
-
+window.showToast=showToast;
 </script>
 </body>
 </html>
