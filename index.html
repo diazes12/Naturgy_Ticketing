@@ -1098,4 +1098,13 @@ function showToast(ic,ti,ms,isErr) {
   const t=document.getElementById('toast');
   document.getElementById('t-ic').textContent=ic;
   document.getElementById('t-ti').textContent=ti;
-  document.getElementById(
+  document.getElementById('t-ms').textContent=ms;
+  t.style.borderColor=isErr?'var(--red-border)':'var(--border)';
+  t.classList.add('show');
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
+}
+window.showToast=showToast;
+
+</script>
+</body>
+</html>
